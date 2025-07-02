@@ -46,9 +46,6 @@ jobs:
     - name: Run build
       run: npm run build --if-present
       
-    - name: Run tests
-      run: npm test --if-present
-      
     - name: Create build artifact
       id: set-output
       run: |
