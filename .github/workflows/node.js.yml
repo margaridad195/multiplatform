@@ -80,10 +80,10 @@ jobs:
         echo "Artifact contents:"
         ls -la artifact/
         echo -e "\nApplication can be started with:"
-        if [ -f artifact/package.json ]; then
-          cd artifact
-          npm ci --production
-          node app.js
-        else
-          echo "No package.json found in artifact"
-          exit
+        echo "cd artifact && npm ci --production && node app.js"
+        
+    - name: Show deployment information
+      run: |
+        echo "Artifact was built from: $GITHUB_SHA"
+        echo "Run number: $GITHUB_RUN_NUMBER"
+        echo "Artifact name: ${{ needs.build.outputs.artifact-name }}"
