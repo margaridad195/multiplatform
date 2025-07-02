@@ -25,7 +25,12 @@ jobs:
         cache: 'npm'
         
     - name: Install dependencies
-      run: npm ci
+      run: |
+        if [ -f package-lock.json ]; then
+          npm ci
+        else
+          npm install
+        fi
       
     - name: Run build
       run: npm run build --if-present
@@ -38,7 +43,10 @@ jobs:
       run: |
         mkdir -p build
         cp -r package*.json app.js build/
-        # Add any other files needed for deployment
+        # Create package-lock.json in build directory if it doesn't exist
+        if [ ! -f build/package-lock.json ] && [ -f package-lock.json ]; then
+          cp package-lock.json build/
+        fi
         echo "artifact-name=node-app-$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
         
     - name: Upload build artifact
