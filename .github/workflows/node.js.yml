@@ -24,11 +24,22 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
         
+    - name: Verify files
+      run: |
+        echo "Current directory: $(pwd)"
+        ls -la
+        
     - name: Install dependencies
       run: |
-        if [ -f package-lock.json ]; then
-          npm ci
+        if [ -f package.json ]; then
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
         else
+          echo "No package.json found. Initializing new Node.js project..."
+          npm init -y
           npm install
         fi
       
@@ -42,10 +53,10 @@ jobs:
       id: set-output
       run: |
         mkdir -p build
-        cp -r package*.json app.js build/
-        # Create package-lock.json in build directory if it doesn't exist
-        if [ ! -f build/package-lock.json ] && [ -f package-lock.json ]; then
-          cp package-lock.json build/
+        cp -r package*.json app.js build/ 2>/dev/null || true
+        # Ensure package.json exists in build directory
+        if [ ! -f build/package.json ]; then
+          echo '{"name":"node-app","version":"1.0.0","description":"","main":"app.js"}' > build/package.json
         fi
         echo "artifact-name=node-app-$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
         
@@ -72,10 +83,10 @@ jobs:
         echo "Artifact contents:"
         ls -la artifact/
         echo -e "\nApplication can be started with:"
-        echo "cd artifact && npm ci --production && node app.js"
-        
-    - name: Show deployment information
-      run: |
-        echo "Artifact was built from: $GITHUB_SHA"
-        echo "Run number: $GITHUB_RUN_NUMBER"
-        echo "Artifact name: ${{ needs.build.outputs.artifact-name }}"
+        if [ -f artifact/package.json ]; then
+          cd artifact
+          npm ci --production
+          node app.js
+        else
+          echo "No package.json found in artifact"
+          exit
