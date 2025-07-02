@@ -16,10 +16,10 @@ jobs:
       artifact-name: ${{ steps.set-output.outputs.artifact-name }}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
@@ -42,7 +42,7 @@ jobs:
         echo "artifact-name=node-app-$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
         
     - name: Upload build artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ steps.set-output.outputs.artifact-name }}
         path: build/
@@ -54,7 +54,7 @@ jobs:
     name: Show artifact info
     steps:
     - name: Download artifact
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: ${{ needs.build.outputs.artifact-name }}
         path: artifact
