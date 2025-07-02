@@ -1,0 +1,15 @@
+    - name: Create artifact directory
+      run: mkdir -p artifact
+
+    - name: Copy files to artifact directory
+      run: |
+        cp package.json package-lock.json ./artifact/
+        cp app.js ./artifact/
+        # Add any other files you want in the artifact
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: node-app
+        path: ./artifact
+        retention-days: 5
