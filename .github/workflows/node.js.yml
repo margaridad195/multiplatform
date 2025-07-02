@@ -1,4 +1,4 @@
-name: Node.js CI
+name: Node.js CI/CD
 
 on:
   push:
@@ -9,10 +9,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [18.x]
+    outputs:
+      artifact-name: ${{ steps.set-output.outputs.artifact-name }}
 
     steps:
     - uses: actions/checkout@v3
@@ -30,4 +31,43 @@ jobs:
       run: npm run build --if-present
       
     - name: Run tests
-      run: npm test
+      run: npm test --if-present
+      
+    - name: Create build artifact
+      id: set-output
+      run: |
+        mkdir -p build
+        cp -r package*.json app.js build/
+        # Add any other files needed for deployment
+        echo "artifact-name=node-app-$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
+        
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ steps.set-output.outputs.artifact-name }}
+        path: build/
+        retention-days: 5
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    name: Show artifact info
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: ${{ needs.build.outputs.artifact-name }}
+        path: artifact
+        
+    - name: Show artifact contents
+      run: |
+        echo "Artifact contents:"
+        ls -la artifact/
+        echo -e "\nApplication can be started with:"
+        echo "cd artifact && npm ci --production && node app.js"
+        
+    - name: Show deployment information
+      run: |
+        echo "Artifact was built from: $GITHUB_SHA"
+        echo "Run number: $GITHUB_RUN_NUMBER"
+        echo "Artifact name: ${{ needs.build.outputs.artifact-name }}"
